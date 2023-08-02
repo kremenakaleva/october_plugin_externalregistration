@@ -1,0 +1,14 @@
+1.0.1: First version of Externalregistration
+1.0.2: Add column arpha_uid to users table
+1.0.3:
+    - 'Add column arpha_uid to users table'
+1.0.4:
+    - 'Add column arpha_uid to users table'
+1.0.5:
+    - 'Add primary data to users table'
+1.0.6:
+    - 'Add arpha id to users table'
+    - users_add_arpha_id.php
+1.0.7:
+    - 'Add topics to users table'
+    - users_add_topics.php

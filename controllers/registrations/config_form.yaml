@@ -1,0 +1,31 @@
+# ===================================
+#  Form Behavior Config
+# ===================================
+
+# Record name
+name: Registration
+
+# Model Form Field configuration
+form: $/pensoft/externalregistration/models/registration/fields.yaml
+
+# Model Class name
+modelClass: Pensoft\Externalregistration\Models\Registration
+
+# Default redirect location
+defaultRedirect: pensoft/externalregistration/registrations
+
+# Create page
+create:
+    title: backend::lang.form.create_title
+    redirect: pensoft/externalregistration/registrations/update/:id
+    redirectClose: pensoft/externalregistration/registrations
+
+# Update page
+update:
+    title: backend::lang.form.update_title
+    redirect: pensoft/externalregistration/registrations
+    redirectClose: pensoft/externalregistration/registrations
+
+# Preview page
+preview:
+    title: backend::lang.form.preview_title
