@@ -134,17 +134,18 @@ class Plugin extends PluginBase
             });
 
             $model->bindEvent('model.afterSave', function() use ($model) {
-                $userId = $model->id;
-                $user = User::find($userId);
-                $arphaUsers = DB::connection('arpha')
-                    ->select('SELECT u2.id, array_to_json(u2.expertise_subject_categories) as expertise_subject_categories
+                if ($model->is_activated) { // update from admin
+                    $userId = $model->id;
+                    $user = User::find($userId);
+                    $arphaUsers = DB::connection('arpha')
+                        ->select('SELECT u2.id, array_to_json(u2.expertise_subject_categories) as expertise_subject_categories
                                 FROM usr u
                                 JOIN usr u2 ON u2.id = u.primary_uid
                                 WHERE lower(u.uname) = \'' . strtolower(trim($user->email)) . '\';');
-                if(count($arphaUsers)){
-                    $newUserId = (int)$arphaUsers[0]->id;
-                    $topics = (new Registration())->cleanTopics($arphaUsers[0]->expertise_subject_categories, $user->topics);
-                    DB::connection('arpha')->select('
+                    if(count($arphaUsers)){
+                        $newUserId = (int)$arphaUsers[0]->id;
+                        $topics = (new Registration())->cleanTopics($arphaUsers[0]->expertise_subject_categories, $user->topics);
+                        DB::connection('arpha')->select('
                                     UPDATE usr
                                     SET state = 1,
                                     first_name = \'' . trim($user->name) . '\',
@@ -152,10 +153,8 @@ class Plugin extends PluginBase
                                     modify_date =  now(),
                                     expertise_subject_categories = ' . $topics . '
                                     WHERE id = ' . (int)$newUserId . '');
+                    }
                 }
-
-//                $userData->topics = 0;
-//                $userData->save();
             });
 
         });
@@ -173,11 +172,11 @@ class Plugin extends PluginBase
                                 JOIN usr u2 ON u2.id = u.primary_uid
                                 WHERE lower(u.uname) = \'' . strtolower(trim($user->email)) . '\';');
 
-            if(!count($arphaUsers)){
-                $ltmppass = md5(date("Y-m-d H:i:s") . strtolower(trim($user->email)));
-                $ltmppass = substr($ltmppass, 0, 5);
-                $lhash = md5(date("Y-m-d H:i:s") . $ltmppass); /* Hash za autologina */
+            $ltmppass = md5(date("Y-m-d H:i:s") . strtolower(trim($user->email)));
+            $ltmppass = substr($ltmppass, 1, 6);
+            $lhash = md5(date("Y-m-d H:i:s") . $ltmppass); /* Hash za autologina */
 
+            if(!count($arphaUsers)){
                 $newArphaUser = DB::connection('arpha')->select('INSERT INTO usr(
 					uname,
                     primary_uid,
@@ -218,6 +217,9 @@ class Plugin extends PluginBase
                 DB::connection('arpha')->select('UPDATE usr
                         SET
                             state = 1,
+                            autolog_hash = COALESCE(autolog_hash, \'' . $lhash . '\'),
+                            expire_autolog_hash = COALESCE(autolog_hash, \'' . $lhash . '\'),
+                            plain_upass = COALESCE(autolog_hash, \'' . $ltmppass . '\'),
                             first_name = \'' . trim($user->name) . '\',
                             last_name = \'' . trim($user->surname) . '\',
                             expertise_subject_categories = ' . $topics . ',
@@ -230,7 +232,7 @@ class Plugin extends PluginBase
 
         });
 
-        \Event::listen('rainlab.user.update', function($user) {
+        \Event::listen('rainlab.user.update', function($user, $data) { // update from profile page
             $userId = $user->id;
             $userData = User::find($userId);
             $userData->topics = post('topics');
@@ -243,16 +245,37 @@ class Plugin extends PluginBase
                                 JOIN usr u2 ON u2.id = u.primary_uid
                                 WHERE lower(u.uname) = \'' . strtolower(trim($user->email)) . '\';');
             if(count($arphaUsers)){
+                $ltmppass = md5(date("Y-m-d H:i:s") . strtolower(trim($user->email)));
+                $ltmppass = substr($ltmppass, 1, 6);
+                $lhash = md5(date("Y-m-d H:i:s") . $ltmppass); /* Hash za autologina */
+
                 $newUserId = (int)$arphaUsers[0]->id;
-                $topics = (new Registration())->cleanTopics($arphaUsers[0]->expertise_subject_categories, post('topics'));
+                $topics = (new Registration())->cleanTopics($arphaUsers[0]->expertise_subject_categories, $userData->topics);
                 DB::connection('arpha')->select('
                                     UPDATE usr
                                     SET state = 1,
+                                    autolog_hash = COALESCE(autolog_hash, \'' . $lhash . '\'),
+                                    expire_autolog_hash = COALESCE(autolog_hash, \'' . $lhash . '\'),
+                                    plain_upass = COALESCE(autolog_hash, \'' . $ltmppass . '\'),
                                     first_name = \'' . trim($user->name) . '\',
                                     last_name = \'' . trim($user->surname) . '\',
                                     modify_date =  now(),
                                     expertise_subject_categories = ' . $topics . '
                                     WHERE id = ' . (int)$newUserId . '');
+            }
+        });
+
+        \Event::listen('rainlab.user.login', function($user) {// User has logged in
+
+            foreach ($user->groups as $group) {
+
+                if ($group->code == 'internal-users') {
+                    return \Redirect::to('/internal-documents');
+                }
+
+                if ($group->code == 'external-users') {
+                    return \Redirect::to('/external-documents');
+                }
             }
         });
     }

@@ -92,11 +92,12 @@ class Registration extends Model
                                 FROM usr u
                                 JOIN usr u2 ON u2.id = u.primary_uid
                                 WHERE lower(u.uname) = \'' . strtolower(trim($user->email)) . '\';');
-            if(!count($arphaUsers)){
-                $ltmppass = md5(date("Y-m-d H:i:s") . strtolower(trim($user->email)));
-                $ltmppass = substr($ltmppass, 0, 5);
-                $lhash = md5(date("Y-m-d H:i:s") . $ltmppass); /* Hash za autologina */
 
+            $ltmppass = md5(date("Y-m-d H:i:s") . strtolower(trim($user->email)));
+            $ltmppass = substr($ltmppass, 1, 6);
+            $lhash = md5(date("Y-m-d H:i:s") . $ltmppass); /* Hash za autologina */
+
+            if(!count($arphaUsers)){
                 $newArphaUser = DB::connection('arpha')->select('INSERT INTO usr(
 					uname,
                     primary_uid,
@@ -137,6 +138,9 @@ class Registration extends Model
                 DB::connection('arpha')->select('UPDATE usr
                         SET
                             state = 1,
+                            autolog_hash = COALESCE(autolog_hash, \'' . $lhash . '\'),
+                            expire_autolog_hash = COALESCE(autolog_hash, \'' . $lhash . '\'),
+                            plain_upass = COALESCE(autolog_hash, \'' . $ltmppass . '\'),
                             first_name = \'' . trim($user->name) . '\',
                             last_name = \'' . trim($user->surname) . '\',
                             expertise_subject_categories = ' . $topics . ',
