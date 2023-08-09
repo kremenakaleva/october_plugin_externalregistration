@@ -145,7 +145,7 @@ class Registration extends Model
                             last_name = \'' . trim($user->surname) . '\',
                             expertise_subject_categories = ' . $topics . ',
                             modify_date = now()
-                WHERE primary_uid = ' . (int)$newUserId . ' ');
+                WHERE id = ' . (int)$newUserId . ' ');
                 $user->arpha_id = $newUserId; //TODO
                 $user->save();
 

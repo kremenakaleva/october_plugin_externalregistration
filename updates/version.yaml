@@ -12,3 +12,5 @@
 1.0.7:
     - 'Add topics to users table'
     - users_add_topics.php
+1.0.8:
+    - 'Latest changes'
