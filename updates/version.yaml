@@ -14,3 +14,5 @@
     - users_add_topics.php
 1.0.8:
     - 'Latest changes'
+1.0.9:
+    - 'Insert into journal_users table after registration'

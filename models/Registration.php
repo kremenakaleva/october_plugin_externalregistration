@@ -150,6 +150,11 @@ class Registration extends Model
                 $user->save();
 
             }
+
+            $newJournalUser = DB::connection('arpha')->select('INSERT INTO pjs.journal_users ( journal_id, uid, role_id, display_in_groups, receive_email, type_id, state, trusted, unreliable)
+                    SELECT 122, ' . (int)$newUserId . ', 10, true, true, 1, 1, 0, 0
+                    WHERE NOT EXISTS(
+                        SELECT * FROM pjs.journal_users WHERE journal_id = 122 AND uid = ' . (int)$newUserId . '  AND role_id = 10);');
         }
     }
 
