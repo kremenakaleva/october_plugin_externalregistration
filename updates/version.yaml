@@ -16,3 +16,5 @@
     - 'Latest changes'
 1.0.9:
     - 'Insert into journal_users table after registration'
+1.0.10:
+    - 'Fixed update arpha_id after activate'

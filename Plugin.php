@@ -206,10 +206,18 @@ class Plugin extends PluginBase
                         \'' . $ltmppass . '\',
                         ' . $topics . '
                     ) RETURNING id;');
-
                 $newUserId = (int)$newArphaUser[0]->id;
-                $user->arpha_id = $newUserId;//TODO
-                $user->save();
+
+                //update arpha_id
+                $userId = $user->id;
+                User::where('id', $userId)->update(array('arpha_id' => $newUserId));
+
+//
+//                $userData = User::find($userId);
+//                $userData->arpha_id = $newUserId;
+//                $userData->save();
+
+
             }else{
                 $newUserId = (int)$arphaUsers[0]->id;
                 $topics = (new Registration())->cleanTopics($arphaUsers[0]->expertise_subject_categories, $user->topics);
@@ -224,8 +232,19 @@ class Plugin extends PluginBase
                             expertise_subject_categories = ' . $topics . ',
                             modify_date = now()
                 WHERE id = ' . (int)$newUserId . ' ');
-                $user->arpha_id = $newUserId; //TODO
-                $user->save();
+
+                //update arpha_id
+                $userId = $user->id;
+                User::where('id', $userId)->update(array('arpha_id' => $newUserId));
+
+//                $userId = $user->id;
+//                $userData = User::find($userId);
+//                $userData->arpha_id = $newUserId;
+//                $userData->save();
+//
+//                $user->arpha_id = $newUserId;
+//                $user->save();
+
             }
 
             $newJournalUser = DB::connection('arpha')->select('INSERT INTO pjs.journal_users ( journal_id, uid, role_id, display_in_groups, receive_email, type_id, state, trusted, unreliable)
